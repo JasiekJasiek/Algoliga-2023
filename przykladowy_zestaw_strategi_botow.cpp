@@ -1,4 +1,5 @@
 // Piotr Sulikowski i Jan Szala
+
 #include <bits/stdc++.h>
 using namespace std;
 const int SZEROKOSC = 35;
