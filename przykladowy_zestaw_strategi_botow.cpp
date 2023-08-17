@@ -1,42 +1,42 @@
 // Piotr Sulikowski i Jan Szala
 #include <bits/stdc++.h>
 using namespace std;
-const int SZEROKOSC = 35;
-const int WYSOKOSC = 20;
-const int ILOSC_RUND = 350;
-const int JA = 0;
-const int ILOSC_KIERUNKOW = 4;
+const int WIDTH = 35;
+const int HEIGHT = 20;
+const int NUMBER_OF_ROUND = 350;
+const int MY_ID = 0;
+const int NUMBER_OF_DIRECTIONS = 4;
 
-struct PUNKT{
+struct POINT{
     int x, y;
-    bool operator==(const PUNKT other) const{
+    bool operator==(const POINT other) const{
         return x == other.x && y == other.y;
     }
 };
 
-struct GRACZ{
-    PUNKT pozycja;
+struct PLAYER{
+    POINT position;
 };
 
 
-PUNKT strategia_chodzenia_do_wybranych_punktow(GRACZ& gracz, int& do_ktorego_idzemy){
-    vector <PUNKT> lista_miejsc = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
-    if(do_ktorego_idzemy >= lista_miejsc.size()){
+POINT strategy_of_going_to_selected_points(PLAYER& player, int& where_we_go){
+    vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
+    if(where_we_go >= list_of_points.size()){
         return {0, 0};
     }
-    if (!(lista_miejsc[do_ktorego_idzemy] == gracz.pozycja)){
-        return lista_miejsc[ do_ktorego_idzemy ];
+    if (!(list_of_points[where_we_go] == player.position)){
+        return list_of_points[ where_we_go ];
     }
     else {
-        do_ktorego_idzemy ++;
-        return lista_miejsc[ do_ktorego_idzemy ];
+        where_we_go++;
+        return list_of_points[ where_we_go ];
     }
 }
 
-PUNKT strategia_chodzenia_na_pale(vector< string >& mapa){
-    for(int i = 0; i < WYSOKOSC; ++i){
-        for(int j = 0; j < SZEROKOSC; ++j){
-            if(mapa[ i ][ j ] == '.'){
+POINT strategy_of_going_anywhere(vector< string >& map){
+    for(int i = 0; i < HEIGHT; ++i){
+        for(int j = 0; j < WIDTH; ++j){
+            if(map[ i ][ j ] == '.'){
                 return {i, j};
             }
         }
@@ -44,36 +44,36 @@ PUNKT strategia_chodzenia_na_pale(vector< string >& mapa){
     return {0, 0};
 }
 
-vector< PUNKT > KIERUNKI = {
-    {-1, 0}, // gora
-    {0, 1},  // prawo
-    {1, 0},  // dol
-    {0, -1}  // lewo
+vector< POINT > DIRECTIONS = {
+    {-1, 0}, // UP
+    {0, 1},  // RIGHT
+    {1, 0},  // LEFT
+    {0, -1}  // LEFT
 };
 
-vector< PUNKT > KIERUNKI_PRZEKATNE = {
-    {-1, -1}, //gora-lewo
-    {-1, 1},  //gora-prawo
-    {1, 1},   //dol-prawo
-    {1, -1}  //dol-lewo
+vector< POINT > DIAGONAL_DIRECTIONS = {
+    {-1, -1}, //UP-LEFT
+    {-1, 1},  //UP-RIGHT
+    {1, 1},   //LEFT-RIGHT
+    {1, -1}  //LEFT-LEFT
 };
 
-bool czy_na_mapie(PUNKT punkt){
-    return punkt.x >= 0 && punkt.x < WYSOKOSC && punkt.y >= 0 && punkt.y < SZEROKOSC;
+bool is_on_map(POINT point){
+    return point.x >= 0 && point.x < HEIGHT && point.y >= 0 && point.y < WIDTH;
 }
 
-PUNKT bfs(PUNKT& pozycja, vector< string >& mapa, vector< vector< bool > >& vis){
-    queue< PUNKT > q;
-    q.push(pozycja);
+POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
+    queue< POINT > q;
+    q.push(position);
     while(!q.empty()){
-        PUNKT temp = q.front(); q.pop();
+        POINT temp = q.front(); q.pop();
         vis[ temp.x ][ temp.y ] = true;
-        for(auto[ dx, dy ] : KIERUNKI){
+        for(auto[ dx, dy ] : DIRECTIONS){
             int nx = temp.x + dx;
             int ny = temp.y + dy;
-            if(czy_na_mapie({nx, ny})){
+            if(is_on_map({nx, ny})){
                 if(!vis[ nx ][ ny ]){
-                    if(mapa[ nx ][ ny ] == '.'){
+                    if(map[ nx ][ ny ] == '.'){
                         return {nx, ny};
                     }
                     q.push({nx, ny});
@@ -84,53 +84,53 @@ PUNKT bfs(PUNKT& pozycja, vector< string >& mapa, vector< vector< bool > >& vis)
     return {0, 0};
 }
 
-PUNKT strategia_chodzenia_do_najbliższego_wolnego_pola(GRACZ& gracz, vector< string >& mapa){
-    vector< vector< bool > >vis(WYSOKOSC, vector< bool >(SZEROKOSC, false));
-    PUNKT cel = bfs(gracz.pozycja, mapa, vis);
-    return cel;
+POINT strategy_of_going_to_the_nearest_free_cell(PLAYER& player, vector< string >& map){
+    vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
+    POINT target_cell = bfs(player.position, map, vis);
+    return target_cell;
 }
 
-int ile_razy_przejde_po_swoich_polach(PUNKT start, PUNKT koniec, vector< string >& mapa){
-    if(koniec.x > start.x){
-        swap(koniec.x, start.x);
+int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, vector< string >& map){
+    if(end.x > start.x){
+        swap(end.x, start.x);
     }
-    if(koniec.y > start.y){
-        swap(koniec.y, start.y);
+    if(end.y > start.y){
+        swap(end.y, start.y);
     }
-    int licznik = 0;
-    for(int i = koniec.x; i <= start.x; ++i){
-        if(mapa[ i ][ koniec.y ] == '0'){
-            licznik++;
+    int count = 0;
+    for(int i = end.x; i <= start.x; ++i){
+        if(map[ i ][ end.y ] == '0'){
+            count++;
         }
     }
-    for(int i = koniec.x; i <= start.x; ++i){
-        if(mapa[ i ][ start.y ] == '0'){
-            licznik++;
+    for(int i = end.x; i <= start.x; ++i){
+        if(map[ i ][ start.y ] == '0'){
+            count++;
         }
     }
-    for(int i = koniec.y + 1; i <= start.y; ++i){
-        if(mapa[ koniec.x ][ i ] == '0'){
-            licznik++;
+    for(int i = end.y + 1; i <= start.y; ++i){
+        if(map[ end.x ][ i ] == '0'){
+            count++;
         }
     }
-    for(int i = koniec.y + 1; i <= start.y; ++i){
-        if(mapa[ start.x ][ i ] == '0'){
-            licznik++;
+    for(int i = end.y + 1; i <= start.y; ++i){
+        if(map[ start.x ][ i ] == '0'){
+            count++;
         }
     }
-    return licznik;
+    return count;
 }
 
-bool czy_jest_przeciwnik_w_srodku(PUNKT start, PUNKT koniec, vector< string >& mapa){
-    if(koniec.x > start.x){
-        swap(koniec.x, start.x);
+bool is_opponent_inside(POINT start, POINT end, vector< string >& map){
+    if(end.x > start.x){
+        swap(end.x, start.x);
     }
-    if(koniec.y > start.y){
-        swap(koniec.y, start.y);
+    if(end.y > start.y){
+        swap(end.y, start.y);
     }
-    for(int i = koniec.x; i <= start.x; ++i){
-        for(int j = koniec.y; j <= koniec.y; ++j){
-            if(mapa[ i ][ j ] == '1' || mapa[ i ][ j ] == '2' || mapa[ i ][ j ] == '3'){
+    for(int i = end.x; i <= start.x; ++i){
+        for(int j = end.y; j <= end.y; ++j){
+            if(map[ i ][ j ] == '1' || map[ i ][ j ] == '2' || map[ i ][ j ] == '3'){
                 return true;
             }
         }
@@ -138,25 +138,25 @@ bool czy_jest_przeciwnik_w_srodku(PUNKT start, PUNKT koniec, vector< string >& m
     return false;
 }
 
-PUNKT szukaj_kwadratu(PUNKT& punkt, vector< string >& mapa){
-    const int BOK = 8;
-    const int ILOSC_DOZWOLONYCH_POWTORZEN = 5;
-    for(auto[ dx, dy ] : KIERUNKI_PRZEKATNE){
-        PUNKT nowy_punkt = {punkt.x + (dx * BOK), punkt.y + (dy * BOK)};
-        if(czy_na_mapie(nowy_punkt)){
-            if(mapa[ nowy_punkt.x ][ nowy_punkt.y ] == '.' && ile_razy_przejde_po_swoich_polach(punkt, nowy_punkt, mapa) <= ILOSC_DOZWOLONYCH_POWTORZEN && !czy_jest_przeciwnik_w_srodku(punkt, nowy_punkt, mapa)){
-                return nowy_punkt;
+POINT look_for_square(POINT& point, vector< string >& map){
+    const int SIDE_OF_THE_SQUARE = 8;
+    const int NUMBER_OF_REPETITIONS_ALLOWED = 5;
+    for(auto[ dx, dy ] : DIAGONAL_DIRECTIONS){
+        POINT new_point = {point.x + (dx * SIDE_OF_THE_SQUARE), point.y + (dy * SIDE_OF_THE_SQUARE)};
+        if(is_on_map(new_point)){
+            if(map[ new_point.x ][ new_point.y ] == '.' && how_many_times_will_I_go_through_my_cells(point, new_point, map) <= NUMBER_OF_REPETITIONS_ALLOWED && !is_opponent_inside(point, new_point, map)){
+                return new_point;
             }
         }
     }
     return {-1, -1};
 }
 
-bool czy_jestem_na_krewedzi(PUNKT& pozycja, vector< string >& mapa){
-    for(auto [dx, dy] : KIERUNKI){
-        PUNKT nowy_punkt = {pozycja.x + dx, pozycja.y + dy};
-        if(czy_na_mapie(nowy_punkt)){
-            if(mapa[ nowy_punkt.x ][ nowy_punkt.y ] == '.'){
+bool am_I_on_edge(POINT& position, vector< string >& map){
+    for(auto [dx, dy] : DIRECTIONS){
+        POINT new_point = {position.x + dx, position.y + dy};
+        if(is_on_map(new_point)){
+            if(map[ new_point.x ][ new_point.y ] == '.'){
                 return true;
             }
         }
@@ -164,189 +164,183 @@ bool czy_jestem_na_krewedzi(PUNKT& pozycja, vector< string >& mapa){
     return false;
 }
 
-PUNKT idz_do_najbliższej_krawędzi(PUNKT pozycja, vector< string >& mapa){
-    int minimalna_ilosc = 1 << 20;
-    PUNKT cel = {0, 0};
-    for(auto[ dx, dy ] : KIERUNKI){
-        PUNKT nowa_pozycja = {pozycja.x + dx, pozycja.y + dy};
-        int licznik = 1;
-        while(czy_na_mapie(nowa_pozycja)){
-            if(mapa[ nowa_pozycja.x ][ nowa_pozycja.y ] == '.'){
+POINT go_to_nearest_edge(POINT position, vector< string >& map){
+    int minimal_count = 1 << 20;
+    POINT target_cell = {0, 0};
+    for(auto[ dx, dy ] : DIRECTIONS){
+        POINT new_position = {position.x + dx, position.y + dy};
+        int count = 1;
+        while(is_on_map(new_position)){
+            if(map[ new_position.x ][ new_position.y ] == '.'){
                 break;
             }
-            licznik++;
-            nowa_pozycja = {nowa_pozycja.x + dx, nowa_pozycja.y + dy};
+            count++;
+            new_position = {new_position.x + dx, new_position.y + dy};
         }
-        if(minimalna_ilosc > licznik && czy_na_mapie(nowa_pozycja)){
-            minimalna_ilosc = licznik;
-            cel = nowa_pozycja;
+        if(minimal_count > count && is_on_map(new_position)){
+            minimal_count = count;
+            target_cell = new_position;
         }
     }
-    return cel;
+    return target_cell;
 }
 
-bool brak_zaczetego_kwadratu(PUNKT& start, PUNKT& koniec){
-    return koniec == (PUNKT){-1, -1} && start == (PUNKT){-1, -1};
+bool no_start_square(POINT& start, POINT& end){
+    return end == (POINT){-1, -1} && start == (POINT){-1, -1};
 }
 
-PUNKT strategia_robienia_kwadrata_na_pale(GRACZ gracz, vector< string >& mapa, PUNKT& start, PUNKT& koniec){
-    if(!czy_jestem_na_krewedzi(gracz.pozycja, mapa) && brak_zaczetego_kwadratu(start, koniec)){
-        return idz_do_najbliższej_krawędzi(gracz.pozycja, mapa);
+POINT strategy_of_making_square(PLAYER player, vector< string >& map, POINT& start, POINT& end){
+    if(!am_I_on_edge(player.position, map) && no_start_square(start, end)){
+        return go_to_nearest_edge(player.position, map);
     }
-    if(brak_zaczetego_kwadratu(start, koniec)){
-        start = {gracz.pozycja.x, gracz.pozycja.y};
-        koniec = szukaj_kwadratu(gracz.pozycja, mapa);
-        if(koniec == (PUNKT){-1, -1}){
+    if(no_start_square(start, end)){
+        start = {player.position.x, player.position.y};
+        end = look_for_square(player.position, map);
+        if(end == (POINT){-1, -1}){
             start = {-1, -1};
-            return strategia_chodzenia_do_najbliższego_wolnego_pola(gracz, mapa);
+            return strategy_of_going_to_the_nearest_free_cell(player, map);
         }
-        return koniec;
+        return end;
     }
-    if(!(gracz.pozycja == koniec) && !(koniec == (PUNKT){-1, -1})){
-        return koniec;
+    if(!(player.position == end) && !(end == (POINT){-1, -1})){
+        return end;
     }
-    else if(gracz.pozycja == koniec){
-        koniec = {-1, -1};
+    else if(player.position == end){
+        end = {-1, -1};
         return start;
     }
-    else if(!(gracz.pozycja == start)){
+    else if(!(player.position == start)){
         return start;
     }
-    else if(gracz.pozycja == start){
+    else if(player.position == start){
         start = {-1, -1};
-        return strategia_robienia_kwadrata_na_pale(gracz, mapa, start, koniec);
+        return strategy_of_making_square(player, map, start, end);
     }
     else{
-        return strategia_chodzenia_do_najbliższego_wolnego_pola(gracz, mapa);
+        return strategy_of_going_to_the_nearest_free_cell(player, map);
     }
 }
 
-vector <vector<int>> bfs_2(PUNKT& pozycja, vector< string >& mapa, vector< vector< bool > >& vis){
-    vector< vector< int > >odleg(WYSOKOSC, vector< int >(SZEROKOSC, 0));
-    queue< PUNKT > q;
-    q.push(pozycja);
+vector <vector<int>> bfs_2(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
+    vector< vector< int > >distance(HEIGHT, vector< int >(WIDTH, 0));
+    queue< POINT > q;
+    q.push(position);
     while(!q.empty()){
-        PUNKT temp = q.front(); q.pop();
+        POINT temp = q.front(); q.pop();
         vis[ temp.x ][ temp.y ] = true;
-        for(auto[ dx, dy ] : KIERUNKI){
+        for(auto[ dx, dy ] : DIRECTIONS){
             int nx = temp.x + dx;
             int ny = temp.y + dy;
-            if(czy_na_mapie({nx, ny})){
+            if(is_on_map({nx, ny})){
                 if(!vis[ nx ][ ny ]){
-                    odleg[nx][ny] = odleg[temp.x][temp.y]+1; 
+                    distance[nx][ny] = distance[temp.x][temp.y]+1; 
                     vis[nx][ny] = true;
                     q.push({nx, ny});
                 }
             }
         }
     }
-    return odleg;
+    return distance;
 }
 
-vector< vector< int > > tworzenie_mapy_kto_ma_blizej ( vector< GRACZ >& gracze, vector< string >& mapa){
-    vector< vector< bool > >vis(WYSOKOSC, vector< bool >(SZEROKOSC, false));
-    vector<vector<int>> dystans_do_mnie = bfs_2(gracze[JA].pozycja, mapa, vis);
-    vector< vector< bool > >vis_opo(WYSOKOSC, vector< bool >(SZEROKOSC, false));
-    vector<vector<int>> dystans_do_oponenta = bfs_2(gracze[1].pozycja, mapa, vis_opo);
-    vector< vector< int > >mapa_odl(WYSOKOSC, vector< int >(SZEROKOSC, 0));
-    for (int i = 0;i < WYSOKOSC;i++){
-        for (int j = 0;j < SZEROKOSC;j++){
-            int ile = dystans_do_oponenta[i][j] - dystans_do_mnie[i][j];
-            mapa_odl[i][j] = ((ile <= 0)? -1 : 1) * dystans_do_mnie[i][j];
-            //wypisywanie
-            //string wypisz = to_string(mapa_odl[i][j]);
-            //wypisz += ((mapa_odl[i][j] < 10 && mapa_odl[i][j] > -10) ? " " : "");
-            //wypisz = ((mapa_odl[i][j] >= 0) ? " " : "") + wypisz;
-            //cerr << wypisz << " ";
+vector< vector< int > > making_map_who_is_closer ( vector< PLAYER >& players, vector< string >& map){
+    vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
+    vector<vector<int>> distance_to_me = bfs_2(players[MY_ID].position, map, vis);
+    vector< vector< bool > >vis_opo(HEIGHT, vector< bool >(WIDTH, false));
+    vector<vector<int>> distance_to_enemy = bfs_2(players[1].position, map, vis_opo);
+    vector< vector< int > >distance_map(HEIGHT, vector< int >(WIDTH, 0));
+    for (int i = 0;i < HEIGHT;i++){
+        for (int j = 0;j < WIDTH;j++){
+            int how_much = distance_to_enemy[i][j] - distance_to_me[i][j];
+            distance_map[i][j] = ((how_much <= 0)? -1 : 1) * distance_to_me[i][j];
         }
-        //cerr << endl;
     }
-    return mapa_odl;
+    return distance_map;
 }
 
-void dfs(PUNKT n, vector< vector< bool > >& vis,vector<vector<int>>& numery_ciagow){
+void dfs(POINT n, vector< vector< bool > >& vis,vector<vector<int>>& number_of_sequence){
     vis[n.x][n.y] = false;
-    for (PUNKT i : KIERUNKI){
-        PUNKT u = {n.x+i.x,n.y+i.y};
-        if (czy_na_mapie(u) == false){
+    for (POINT i : DIRECTIONS){
+        POINT u = {n.x+i.x,n.y+i.y};
+        if (is_on_map(u) == false){
             continue;
         }
         if (vis[u.x][u.y] == true){
-            numery_ciagow[u.x][u.y] = numery_ciagow[n.x][n.y];
+            number_of_sequence[u.x][u.y] = number_of_sequence[n.x][n.y];
             vis[n.x][n.y] = false;
-            dfs(u,vis,numery_ciagow);
+            dfs(u,vis,number_of_sequence);
         }
     }
 }
 
-vector<vector<int>> ciaglosc(int numer_gracza, vector< string >& mapa){
-    vector< vector< bool > >vis(WYSOKOSC, vector< bool >(SZEROKOSC, false));
-    vector<PUNKT> gdzie_slad;
-    for (int i = 0;i < WYSOKOSC;i++){
-        for (int j = 0;j < SZEROKOSC;j++){
-            if (mapa[i][j] == numer_gracza+'0'){
+vector<vector<int>> continuity(int player_number, vector< string >& map){
+    vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
+    vector<POINT> where_path;
+    for (int i = 0;i < HEIGHT;i++){
+        for (int j = 0;j < WIDTH;j++){
+            if (map[i][j] == player_number+'0'){
                 vis[i][j] = true;
-                gdzie_slad.push_back({i,j});
+                where_path.push_back({i,j});
             }
         }
     }
-    vector<vector<int>> numery_ciagow(WYSOKOSC, vector< int >(SZEROKOSC, -3));
-    int kolejny = 1;
-    for (PUNKT g : gdzie_slad){
+    vector<vector<int>> number_of_sequence(HEIGHT, vector< int >(WIDTH, -3));
+    int next = 1;
+    for (POINT g : where_path){
         if (vis[g.x][g.y]){
-            numery_ciagow[g.x][g.y] = kolejny;
-            dfs(g,vis,numery_ciagow);
-            kolejny++;
+            number_of_sequence[g.x][g.y] = next;
+            dfs(g,vis,number_of_sequence);
+            next++;
         }
     }
-    return numery_ciagow;
+    return number_of_sequence;
 
 }
-// faza alfa
-PUNKT decyzaj_gdzie_isc( vector< GRACZ >& gracze, vector< string >& mapa,vector< vector< int > >& kto_ma_blizej){
-    vector<vector<int>> numery_ciagow = ciaglosc(JA,mapa);
+// faze alpha
+POINT decision_where_to_go( vector< PLAYER >& players, vector< string >& map,vector< vector< int > >& who_is_closer){
+    vector<vector<int>> number_of_sequence = continuity(MY_ID,map);
     return {0,0};
 }
  
-PUNKT strategia_laczenia_bfs_ow ( vector< GRACZ >& gracze, vector< string >& mapa){
-    vector< vector< int > > kto_ma_blizej = tworzenie_mapy_kto_ma_blizej (gracze, mapa);
-    decyzaj_gdzie_isc(gracze, mapa, kto_ma_blizej);
+POINT strategy_of_mearging_bfs ( vector< PLAYER >& players, vector< string >& map){
+    vector< vector< int > > who_is_closer = making_map_who_is_closer (players, map);
+    decision_where_to_go(players, map, who_is_closer);
     return {0,0};
 }
 
 int main(){
 
-    int ILOSC_PRZECIWNIKOW;
-    int AKTUALNA_RUNDA;
-    cin >> ILOSC_PRZECIWNIKOW;
-    vector< GRACZ > gracze(ILOSC_PRZECIWNIKOW + 1);
-    vector< string > mapa(WYSOKOSC);
-    PUNKT nastepny_kwadrat = {-1, -1};
-    PUNKT pozycja_poczatkowa = {-1, -1};
-    int do_ktorego_idzemy = 0;
+    int NUMBER_OF_ENEMIES;
+    int CURR_RUND;
+    cin >> NUMBER_OF_ENEMIES;
+    vector< PLAYER > players(NUMBER_OF_ENEMIES + 1);
+    vector< string > map(HEIGHT);
+    POINT next_square = {-1, -1};
+    POINT start_position = {-1, -1};
+    int where_we_go = 0;
     
     while (1) {
-        cin >> AKTUALNA_RUNDA;
+        cin >> CURR_RUND;
         int x, y, _;
         cin >> x >> y >> _;
         int nx = y;
         int ny = x;
-        gracze[ JA ].pozycja = {nx, ny};
-        for (int i = 0; i < ILOSC_PRZECIWNIKOW; ++i) {
+        players[ MY_ID ].position = {nx, ny};
+        for (int i = 0; i < NUMBER_OF_ENEMIES; ++i) {
             cin >> x >> y >> _;
             int nx = y;
             int ny = x;
-            gracze[ i + 1 ].pozycja = {nx, ny};
+            players[ i + 1 ].position = {nx, ny};
         }
         for (int i = 0; i < 20; i++) {
-            cin >> mapa[ i ];
+            cin >> map[ i ];
         }
-        PUNKT wyjscie;
-        //wyjscie = strategia_chodzenia_do_wybranych_punktow(gracze[ JA ], do_ktorego_idzemy);
-        //wyjscie = strategia_chodzenia_na_pale(mapa);
-        //wyjscie = strategia_chodzenia_do_najbliższego_wolnego_pola(gracze[ JA ], mapa);
-        wyjscie = strategia_laczenia_bfs_ow (gracze, mapa);
-        //wyjscie = strategia_robienia_kwadrata_na_pale(gracze[ JA ], mapa, nastepny_kwadrat, pozycja_poczatkowa);
-        cout << wyjscie.y << " " << wyjscie.x << '\n';
+        POINT output;
+        //output = strategy_of_going_to_selected_points(players[ MY_ID ], where_we_go);
+        //output = strategy_of_going_anywhere(map);
+        //output = strategy_of_going_to_the_nearest_free_cell(players[ MY_ID ], map);
+        //output = strategy_of_mearging_bfs (players, map);
+        output = strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
+        cout << output.y << " " << output.x << '\n';
     }
 }
