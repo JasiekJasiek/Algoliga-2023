@@ -1,5 +1,4 @@
 // Piotr Sulikowski i Jan Szala
-
 #include <bits/stdc++.h>
 using namespace std;
 const int SZEROKOSC = 35;
@@ -260,18 +259,58 @@ vector< vector< int > > tworzenie_mapy_kto_ma_blizej ( vector< GRACZ >& gracze, 
             //wypisz = ((mapa_odl[i][j] >= 0) ? " " : "") + wypisz;
             //cerr << wypisz << " ";
         }
-        cerr << endl;
+        //cerr << endl;
     }
     return mapa_odl;
 }
+
+void dfs(PUNKT n, vector< vector< bool > >& vis,vector<vector<int>>& numery_ciagow){
+    vis[n.x][n.y] = false;
+    for (PUNKT i : KIERUNKI){
+        PUNKT u = {n.x+i.x,n.y+i.y};
+        if (czy_na_mapie(u) == false){
+            continue;
+        }
+        if (vis[u.x][u.y] == true){
+            numery_ciagow[u.x][u.y] = numery_ciagow[n.x][n.y];
+            vis[n.x][n.y] = false;
+            dfs(u,vis,numery_ciagow);
+        }
+    }
+}
+
+vector<vector<int>> ciaglosc(int numer_gracza, vector< string >& mapa){
+    vector< vector< bool > >vis(WYSOKOSC, vector< bool >(SZEROKOSC, false));
+    vector<PUNKT> gdzie_slad;
+    for (int i = 0;i < WYSOKOSC;i++){
+        for (int j = 0;j < SZEROKOSC;j++){
+            if (mapa[i][j] == numer_gracza+'0'){
+                vis[i][j] = true;
+                gdzie_slad.push_back({i,j});
+            }
+        }
+    }
+    vector<vector<int>> numery_ciagow(WYSOKOSC, vector< int >(SZEROKOSC, -3));
+    int kolejny = 1;
+    for (PUNKT g : gdzie_slad){
+        if (vis[g.x][g.y]){
+            numery_ciagow[g.x][g.y] = kolejny;
+            dfs(g,vis,numery_ciagow);
+            kolejny++;
+        }
+    }
+    return numery_ciagow;
+
+}
 // faza alfa
 PUNKT decyzaj_gdzie_isc( vector< GRACZ >& gracze, vector< string >& mapa,vector< vector< int > >& kto_ma_blizej){
+    vector<vector<int>> numery_ciagow = ciaglosc(JA,mapa);
     return {0,0};
 }
  
 PUNKT strategia_laczenia_bfs_ow ( vector< GRACZ >& gracze, vector< string >& mapa){
     vector< vector< int > > kto_ma_blizej = tworzenie_mapy_kto_ma_blizej (gracze, mapa);
-    return decyzaj_gdzie_isc(gracze, mapa, kto_ma_blizej);
+    decyzaj_gdzie_isc(gracze, mapa, kto_ma_blizej);
     return {0,0};
 }
 
@@ -306,8 +345,8 @@ int main(){
         //wyjscie = strategia_chodzenia_do_wybranych_punktow(gracze[ JA ], do_ktorego_idzemy);
         //wyjscie = strategia_chodzenia_na_pale(mapa);
         //wyjscie = strategia_chodzenia_do_najbliższego_wolnego_pola(gracze[ JA ], mapa);
-        //wyjscie = strategia_laczenia_bfs_ow (gracze, mapa);
-        wyjscie = strategia_robienia_kwadrata_na_pale(gracze[ JA ], mapa, nastepny_kwadrat, pozycja_poczatkowa);
+        wyjscie = strategia_laczenia_bfs_ow (gracze, mapa);
+        //wyjscie = strategia_robienia_kwadrata_na_pale(gracze[ JA ], mapa, nastepny_kwadrat, pozycja_poczatkowa);
         cout << wyjscie.y << " " << wyjscie.x << '\n';
     }
 }
