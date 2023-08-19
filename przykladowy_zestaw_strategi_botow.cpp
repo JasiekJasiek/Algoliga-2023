@@ -49,6 +49,9 @@ struct BASE {
     }
 };
 
+
+//choose some cells and write program which is goint throught all of them
+//TASK
 struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{ 
     int  where_we_go = 0;
 
@@ -75,6 +78,8 @@ struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{
     }
 };
 
+//write program which is going to any of free cell
+//TASK
 struct STRATEGY_OF_GOING_ANYWHERE : BASE{
     
     void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
@@ -105,7 +110,7 @@ struct STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL : BASE{
         map = map_now;
         strategy_of_going_to_the_nearest_free_cell(players[MY_ID],map);
     } 
-
+    //looking for first free cell
     POINT bfs(POINT& position, const vector< string >& map, vector< vector< bool > >& vis){
         queue< POINT > q;
         q.push(position);
@@ -146,6 +151,8 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
     }
 
+    //you will get two points reprezenting two corner of square and map, write program which checks how many times your bot will go throught already taken cell
+    //TASK
     int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
             swap(end.x, start.x);
@@ -177,6 +184,9 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return count;
     }
 
+
+    //you will get two points reprezenting two corner of square and map, write program which checks if inside of the square is any cell taken by opponent 
+    //TASK
     bool is_opponent_inside(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
             swap(end.x, start.x);
@@ -194,6 +204,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return false;
     }
 
+    //it's looking for place to make next square 
     POINT look_for_square(POINT& point, const vector< string >& map){
         const int SIDE_OF_THE_SQUARE = 8;
         const int NUMBER_OF_REPETITIONS_ALLOWED = 5;
@@ -208,6 +219,8 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return {-1, -1};
     }
 
+    //check if your bot is on the edge of your field 
+    //TASK
     bool am_I_on_edge(POINT& position, const vector< string >& map){
         for(auto [dx, dy] : DIRECTIONS){
             POINT new_point = {position.x + dx, position.y + dy};
@@ -241,15 +254,18 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         write_out(&target_cell);
     }
 
+    //no stareted square at the moment
     bool no_start_square(POINT& start, POINT& end){
         return end == (POINT){-1, -1} && start == (POINT){-1, -1};
     }
 
     void strategy_of_making_square(PLAYER player, const vector< string >& map, POINT& start, POINT& end){
+        //if you are not in the edge of your field and you are not making any square at the moment
         if(!am_I_on_edge(player.position, map) && no_start_square(start, end)){
             go_to_nearest_edge(player.position, map);
             return;
         }
+        //if you are not making any square at the moment
         if(no_start_square(start, end)){
             start = {player.position.x, player.position.y};
             end = look_for_square(player.position, map);
@@ -261,19 +277,23 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
             write_out(&end);
             return;
         }
+        //if you won't reach end point already
         if(!(player.position == end) && !(end == (POINT){-1, -1})){
             write_out(&end);
             return;
         }
+        //if you reach end point
         else if(player.position == end){
             end = {-1, -1};
             write_out(&start);
             return;
         }
+        //if you won't reach start point already
         else if(!(player.position == start)){
             write_out(&start);
             return;
         }
+        //if you reach start point
         else if(player.position == start){
             start = {-1, -1};
             strategy_of_making_square(player, map, start, end);
