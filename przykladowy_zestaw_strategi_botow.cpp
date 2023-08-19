@@ -47,15 +47,19 @@ struct BASE {
 };
 
 struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{ 
-    STRATEGY_OF_GOING_TO_SELECTED_POINTS( vector< PLAYER >& players_now, vector< string >& map_now){
+    int  where_we_go = 0;
+
+    void start(vector< PLAYER >& players_now, vector< string >& map_now){
         players = players_now;
         map = map_now;
+        strategy_of_going_to_selected_points(players[MY_ID]);
     }
 
-    void strategy_of_going_to_selected_points(PLAYER& player, int& where_we_go){
+    void strategy_of_going_to_selected_points(PLAYER& player){
         vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
         if(where_we_go >= list_of_points.size()){
             write_out({0, 0});
+            return;
         }
         if (!(list_of_points[where_we_go] == player.position)){
             write_out(list_of_points[ where_we_go ]);
@@ -64,6 +68,7 @@ struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{
             where_we_go++;
             write_out(list_of_points[ where_we_go ]);
         }
+        return;
     }
 };
 
