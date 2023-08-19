@@ -8,7 +8,6 @@ const int MY_ID = 0;
 const int NUMBER_OF_DIRECTIONS = 4;
 
 
-
 struct POINT{
     int x, y;
     bool operator==(const POINT other) const{
@@ -47,19 +46,26 @@ struct BASE {
     }
 };
 
-POINT strategy_of_going_to_selected_points(PLAYER& player, int& where_we_go){
-    vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
-    if(where_we_go >= list_of_points.size()){
-        return {0, 0};
+struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{ 
+    STRATEGY_OF_GOING_TO_SELECTED_POINTS( vector< PLAYER >& players_now, vector< string >& map_now){
+        players = players_now;
+        map = map_now;
     }
-    if (!(list_of_points[where_we_go] == player.position)){
-        return list_of_points[ where_we_go ];
+
+    void strategy_of_going_to_selected_points(PLAYER& player, int& where_we_go){
+        vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
+        if(where_we_go >= list_of_points.size()){
+            write_out({0, 0});
+        }
+        if (!(list_of_points[where_we_go] == player.position)){
+            write_out(list_of_points[ where_we_go ]);
+        }
+        else {
+            where_we_go++;
+            write_out(list_of_points[ where_we_go ]);
+        }
     }
-    else {
-        where_we_go++;
-        return list_of_points[ where_we_go ];
-    }
-}
+};
 
 POINT strategy_of_going_anywhere(vector< string >& map){
     for(int i = 0; i < HEIGHT; ++i){
