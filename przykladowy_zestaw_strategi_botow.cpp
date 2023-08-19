@@ -151,7 +151,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
     }
 
-    //you will get two points reprezenting two corner of square and map, write program which checks how many times your bot will go throught already taken cell
+    //you will get two points reprezenting two corner of square and map, write program which checks how many times your bot will go throught already taken cells
     //TASK
     int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
@@ -185,7 +185,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
     }
 
 
-    //you will get two points reprezenting two corner of square and map, write program which checks if inside of the square is any cell taken by opponent 
+    //you will get two points reprezenting two corner of square and map, write program which checks if inside of the square is any cells taken by opponent 
     //TASK
     bool is_opponent_inside(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
@@ -219,7 +219,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return {-1, -1};
     }
 
-    //check if your bot is on the edge of your field 
+    //check if your bot is on the any edge of your field 
     //TASK
     bool am_I_on_edge(POINT& position, const vector< string >& map){
         for(auto [dx, dy] : DIRECTIONS){
