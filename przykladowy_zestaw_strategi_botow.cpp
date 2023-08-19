@@ -94,33 +94,42 @@ struct STRATEGY_OF_GOING_ANYWHERE : BASE{
     }
 };
 
-POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
-    queue< POINT > q;
-    q.push(position);
-    while(!q.empty()){
-        POINT temp = q.front(); q.pop();
-        vis[ temp.x ][ temp.y ] = true;
-        for(auto[ dx, dy ] : DIRECTIONS){
-            int nx = temp.x + dx;
-            int ny = temp.y + dy;
-            if(is_on_map({nx, ny})){
-                if(!vis[ nx ][ ny ]){
-                    if(map[ nx ][ ny ] == '.'){
-                        return {nx, ny};
+struct STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL : BASE{
+
+    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+        players = players_now;
+        map = map_now;
+        strategy_of_going_to_the_nearest_free_cell(players[MY_ID],map);
+    } 
+
+    POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
+        queue< POINT > q;
+        q.push(position);
+        while(!q.empty()){
+            POINT temp = q.front(); q.pop();
+            vis[ temp.x ][ temp.y ] = true;
+            for(auto[ dx, dy ] : DIRECTIONS){
+                int nx = temp.x + dx;
+                int ny = temp.y + dy;
+                if(is_on_map({nx, ny})){
+                    if(!vis[ nx ][ ny ]){
+                        if(map[ nx ][ ny ] == '.'){
+                            return {nx, ny};
+                        }
+                        q.push({nx, ny});
                     }
-                    q.push({nx, ny});
                 }
             }
         }
+        return {0, 0};
     }
-    return {0, 0};
-}
 
-POINT strategy_of_going_to_the_nearest_free_cell(PLAYER& player, vector< string >& map){
-    vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
-    POINT target_cell = bfs(player.position, map, vis);
-    return target_cell;
-}
+    void strategy_of_going_to_the_nearest_free_cell(PLAYER& player, vector< string >& map){
+        vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
+        POINT target_cell = bfs(player.position, map, vis);
+        write_out(target_cell);
+    }
+};
 
 int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, vector< string >& map){
     if(end.x > start.x){
@@ -364,7 +373,7 @@ int main(){
             int ny = x;
             players[ i + 1 ].position = {nx, ny};
         }
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < HEIGHT; i++) {
             cin >> map[ i ];
         }
         POINT output;
