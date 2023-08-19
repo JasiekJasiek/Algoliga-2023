@@ -131,136 +131,147 @@ struct STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL : BASE{
     }
 };
 
-int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, vector< string >& map){
-    if(end.x > start.x){
-        swap(end.x, start.x);
-    }
-    if(end.y > start.y){
-        swap(end.y, start.y);
-    }
-    int count = 0;
-    for(int i = end.x; i <= start.x; ++i){
-        if(map[ i ][ end.y ] == '0'){
-            count++;
-        }
-    }
-    for(int i = end.x; i <= start.x; ++i){
-        if(map[ i ][ start.y ] == '0'){
-            count++;
-        }
-    }
-    for(int i = end.y + 1; i <= start.y; ++i){
-        if(map[ end.x ][ i ] == '0'){
-            count++;
-        }
-    }
-    for(int i = end.y + 1; i <= start.y; ++i){
-        if(map[ start.x ][ i ] == '0'){
-            count++;
-        }
-    }
-    return count;
-}
+struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
+    POINT next_square = {-1, -1};
+    POINT start_position = {-1, -1};
 
-bool is_opponent_inside(POINT start, POINT end, vector< string >& map){
-    if(end.x > start.x){
-        swap(end.x, start.x);
+    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+        players = players_now;
+        map = map_now;
+        strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
     }
-    if(end.y > start.y){
-        swap(end.y, start.y);
-    }
-    for(int i = end.x; i <= start.x; ++i){
-        for(int j = end.y; j <= end.y; ++j){
-            if(map[ i ][ j ] == '1' || map[ i ][ j ] == '2' || map[ i ][ j ] == '3'){
-                return true;
+
+    int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, vector< string >& map){
+        if(end.x > start.x){
+            swap(end.x, start.x);
+        }
+        if(end.y > start.y){
+            swap(end.y, start.y);
+        }
+        int count = 0;
+        for(int i = end.x; i <= start.x; ++i){
+            if(map[ i ][ end.y ] == '0'){
+                count++;
             }
         }
-    }
-    return false;
-}
-
-POINT look_for_square(POINT& point, vector< string >& map){
-    const int SIDE_OF_THE_SQUARE = 8;
-    const int NUMBER_OF_REPETITIONS_ALLOWED = 5;
-    for(auto[ dx, dy ] : DIAGONAL_DIRECTIONS){
-        POINT new_point = {point.x + (dx * SIDE_OF_THE_SQUARE), point.y + (dy * SIDE_OF_THE_SQUARE)};
-        if(is_on_map(new_point)){
-            if(map[ new_point.x ][ new_point.y ] == '.' && how_many_times_will_I_go_through_my_cells(point, new_point, map) <= NUMBER_OF_REPETITIONS_ALLOWED && !is_opponent_inside(point, new_point, map)){
-                return new_point;
+        for(int i = end.x; i <= start.x; ++i){
+            if(map[ i ][ start.y ] == '0'){
+                count++;
             }
         }
-    }
-    return {-1, -1};
-}
-
-bool am_I_on_edge(POINT& position, vector< string >& map){
-    for(auto [dx, dy] : DIRECTIONS){
-        POINT new_point = {position.x + dx, position.y + dy};
-        if(is_on_map(new_point)){
-            if(map[ new_point.x ][ new_point.y ] == '.'){
-                return true;
+        for(int i = end.y + 1; i <= start.y; ++i){
+            if(map[ end.x ][ i ] == '0'){
+                count++;
             }
         }
-    }
-    return false;
-}
-
-POINT go_to_nearest_edge(POINT position, vector< string >& map){
-    int minimal_count = 1 << 20;
-    POINT target_cell = {0, 0};
-    for(auto[ dx, dy ] : DIRECTIONS){
-        POINT new_position = {position.x + dx, position.y + dy};
-        int count = 1;
-        while(is_on_map(new_position)){
-            if(map[ new_position.x ][ new_position.y ] == '.'){
-                break;
+        for(int i = end.y + 1; i <= start.y; ++i){
+            if(map[ start.x ][ i ] == '0'){
+                count++;
             }
-            count++;
-            new_position = {new_position.x + dx, new_position.y + dy};
         }
-        if(minimal_count > count && is_on_map(new_position)){
-            minimal_count = count;
-            target_cell = new_position;
+        return count;
+    }
+
+    bool is_opponent_inside(POINT start, POINT end, vector< string >& map){
+        if(end.x > start.x){
+            swap(end.x, start.x);
         }
+        if(end.y > start.y){
+            swap(end.y, start.y);
+        }
+        for(int i = end.x; i <= start.x; ++i){
+            for(int j = end.y; j <= end.y; ++j){
+                if(map[ i ][ j ] == '1' || map[ i ][ j ] == '2' || map[ i ][ j ] == '3'){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
-    return target_cell;
-}
 
-bool no_start_square(POINT& start, POINT& end){
-    return end == (POINT){-1, -1} && start == (POINT){-1, -1};
-}
-
-POINT strategy_of_making_square(PLAYER player, vector< string >& map, POINT& start, POINT& end){
-    if(!am_I_on_edge(player.position, map) && no_start_square(start, end)){
-        return go_to_nearest_edge(player.position, map);
+    POINT look_for_square(POINT& point, vector< string >& map){
+        const int SIDE_OF_THE_SQUARE = 8;
+        const int NUMBER_OF_REPETITIONS_ALLOWED = 5;
+        for(auto[ dx, dy ] : DIAGONAL_DIRECTIONS){
+            POINT new_point = {point.x + (dx * SIDE_OF_THE_SQUARE), point.y + (dy * SIDE_OF_THE_SQUARE)};
+            if(is_on_map(new_point)){
+                if(map[ new_point.x ][ new_point.y ] == '.' && how_many_times_will_I_go_through_my_cells(point, new_point, map) <= NUMBER_OF_REPETITIONS_ALLOWED && !is_opponent_inside(point, new_point, map)){
+                    return new_point;
+                }
+            }
+        }
+        return {-1, -1};
     }
-    if(no_start_square(start, end)){
-        start = {player.position.x, player.position.y};
-        end = look_for_square(player.position, map);
-        if(end == (POINT){-1, -1}){
+
+    bool am_I_on_edge(POINT& position, vector< string >& map){
+        for(auto [dx, dy] : DIRECTIONS){
+            POINT new_point = {position.x + dx, position.y + dy};
+            if(is_on_map(new_point)){
+                if(map[ new_point.x ][ new_point.y ] == '.'){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    void go_to_nearest_edge(POINT position, vector< string >& map){
+        int minimal_count = 1 << 20;
+        POINT target_cell = {0, 0};
+        for(auto[ dx, dy ] : DIRECTIONS){
+            POINT new_position = {position.x + dx, position.y + dy};
+            int count = 1;
+            while(is_on_map(new_position)){
+                if(map[ new_position.x ][ new_position.y ] == '.'){
+                    break;
+                }
+                count++;
+                new_position = {new_position.x + dx, new_position.y + dy};
+            }
+            if(minimal_count > count && is_on_map(new_position)){
+                minimal_count = count;
+                target_cell = new_position;
+            }
+        }
+        write_out(target_cell);
+    }
+
+    bool no_start_square(POINT& start, POINT& end){
+        return end == (POINT){-1, -1} && start == (POINT){-1, -1};
+    }
+
+    void strategy_of_making_square(PLAYER player, vector< string >& map, POINT& start, POINT& end){
+        if(!am_I_on_edge(player.position, map) && no_start_square(start, end)){
+            go_to_nearest_edge(player.position, map);
+        }
+        if(no_start_square(start, end)){
+            start = {player.position.x, player.position.y};
+            end = look_for_square(player.position, map);
+            if(end == (POINT){-1, -1}){
+                start = {-1, -1};
+                strategy_of_going_to_the_nearest_free_cell(player, map);
+            }
+            write_out(end);
+        }
+        if(!(player.position == end) && !(end == (POINT){-1, -1})){
+            write_out(end);
+        }
+        else if(player.position == end){
+            end = {-1, -1};
+            write_out(start);
+        }
+        else if(!(player.position == start)){
+            write_out(start);
+        }
+        else if(player.position == start){
             start = {-1, -1};
-            return strategy_of_going_to_the_nearest_free_cell(player, map);
+            strategy_of_making_square(player, map, start, end);
         }
-        return end;
+        else{
+            strategy_of_going_to_the_nearest_free_cell(player, map);
+        }
     }
-    if(!(player.position == end) && !(end == (POINT){-1, -1})){
-        return end;
-    }
-    else if(player.position == end){
-        end = {-1, -1};
-        return start;
-    }
-    else if(!(player.position == start)){
-        return start;
-    }
-    else if(player.position == start){
-        start = {-1, -1};
-        return strategy_of_making_square(player, map, start, end);
-    }
-    else{
-        return strategy_of_going_to_the_nearest_free_cell(player, map);
-    }
-}
+};
 
 vector <vector<int>> bfs_2(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
     vector< vector< int > >distance(HEIGHT, vector< int >(WIDTH, 0));
@@ -356,9 +367,8 @@ int main(){
     cin >> NUMBER_OF_ENEMIES;
     vector< PLAYER > players(NUMBER_OF_ENEMIES + 1);
     vector< string > map(HEIGHT);
-    POINT next_square = {-1, -1};
-    POINT start_position = {-1, -1};
-    int where_we_go = 0;
+
+    STRATEGY_OF_MAKING_SQUARE soms;
     
     while (1) {
         cin >> CURR_RUND;
@@ -381,6 +391,6 @@ int main(){
         //output = strategy_of_going_anywhere(map);
         //output = strategy_of_going_to_the_nearest_free_cell(players[ MY_ID ], map);
         //output = strategy_of_mearging_bfs (players, map);
-        output = strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
+        soms.start(players,map);
     }
 }
