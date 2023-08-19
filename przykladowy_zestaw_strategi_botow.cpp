@@ -20,6 +20,9 @@ struct PLAYER{
 };
 
 struct BASE {
+
+    POINT ZEROZERO = {0, 0};
+
     vector< string > map;
     vector< PLAYER > players;
 
@@ -34,22 +37,22 @@ struct BASE {
         {-1, -1}, //UP-LEFT
         {-1, 1},  //UP-RIGHT
         {1, 1},   //LEFT-RIGHT
-        {1, -1}  //LEFT-LEFT
+        {1, -1}   //LEFT-LEFT
     };
 
     bool is_on_map(POINT point){
         return point.x >= 0 && point.x < HEIGHT && point.y >= 0 && point.y < WIDTH;
     }
 
-    void write_out(const POINT& output){
-        cout << output.y << " " << output.x << '\n';
+    void write_out(POINT* output){
+        cout << output -> y << " " << output -> x << '\n';
     }
 };
 
 struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{ 
     int  where_we_go = 0;
 
-    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+    void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
         players = players_now;
         map = map_now;
         strategy_of_going_to_selected_points(players[MY_ID]);
@@ -58,15 +61,15 @@ struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{
     void strategy_of_going_to_selected_points(PLAYER& player){
         vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
         if(where_we_go >= list_of_points.size()){
-            write_out({0, 0});
+            write_out(&ZEROZERO);
             return;
         }
         if (!(list_of_points[where_we_go] == player.position)){
-            write_out(list_of_points[ where_we_go ]);
+            write_out(&list_of_points[ where_we_go ]);
         }
         else {
             where_we_go++;
-            write_out(list_of_points[ where_we_go ]);
+            write_out(&list_of_points[ where_we_go ]);
         }
         return;
     }
@@ -74,35 +77,36 @@ struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{
 
 struct STRATEGY_OF_GOING_ANYWHERE : BASE{
     
-    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+    void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
         players = players_now;
         map = map_now;
         strategy_of_going_anywhere(map);
     }
 
-    void strategy_of_going_anywhere(vector< string >& map){
+    void strategy_of_going_anywhere(const vector< string >& map){
         for(int i = 0; i < HEIGHT; ++i){
             for(int j = 0; j < WIDTH; ++j){
                 if(map[ i ][ j ] == '.'){
-                    write_out({i, j});
+                    POINT target = {i, j};
+                    write_out(&target);
                     return ;
                 }
             }
         }
-        write_out({0, 0});
+        write_out(&ZEROZERO);
         return ;
     }
 };
 
 struct STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL : BASE{
 
-    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+    void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
         players = players_now;
         map = map_now;
         strategy_of_going_to_the_nearest_free_cell(players[MY_ID],map);
     } 
 
-    POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
+    POINT bfs(POINT& position, const vector< string >& map, vector< vector< bool > >& vis){
         queue< POINT > q;
         q.push(position);
         while(!q.empty()){
@@ -124,10 +128,10 @@ struct STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL : BASE{
         return {0, 0};
     }
 
-    void strategy_of_going_to_the_nearest_free_cell(PLAYER& player, vector< string >& map){
+    void strategy_of_going_to_the_nearest_free_cell(PLAYER& player, const vector< string >& map){
         vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
         POINT target_cell = bfs(player.position, map, vis);
-        write_out(target_cell);
+        write_out(&target_cell);
         return;
     }
 };
@@ -136,13 +140,13 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
     POINT next_square = {-1, -1};
     POINT start_position = {-1, -1};
 
-    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+    void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
         players = players_now;
         map = map_now;
         strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
     }
 
-    int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, vector< string >& map){
+    int how_many_times_will_I_go_through_my_cells(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
             swap(end.x, start.x);
         }
@@ -173,7 +177,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return count;
     }
 
-    bool is_opponent_inside(POINT start, POINT end, vector< string >& map){
+    bool is_opponent_inside(POINT start, POINT end, const vector< string >& map){
         if(end.x > start.x){
             swap(end.x, start.x);
         }
@@ -190,7 +194,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return false;
     }
 
-    POINT look_for_square(POINT& point, vector< string >& map){
+    POINT look_for_square(POINT& point, const vector< string >& map){
         const int SIDE_OF_THE_SQUARE = 8;
         const int NUMBER_OF_REPETITIONS_ALLOWED = 5;
         for(auto[ dx, dy ] : DIAGONAL_DIRECTIONS){
@@ -204,7 +208,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return {-1, -1};
     }
 
-    bool am_I_on_edge(POINT& position, vector< string >& map){
+    bool am_I_on_edge(POINT& position, const vector< string >& map){
         for(auto [dx, dy] : DIRECTIONS){
             POINT new_point = {position.x + dx, position.y + dy};
             if(is_on_map(new_point)){
@@ -216,7 +220,7 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return false;
     }
 
-    void go_to_nearest_edge(POINT position, vector< string >& map){
+    void go_to_nearest_edge(POINT position, const vector< string >& map){
         int minimal_count = 1 << 20;
         POINT target_cell = {0, 0};
         for(auto[ dx, dy ] : DIRECTIONS){
@@ -234,14 +238,14 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
                 target_cell = new_position;
             }
         }
-        write_out(target_cell);
+        write_out(&target_cell);
     }
 
     bool no_start_square(POINT& start, POINT& end){
         return end == (POINT){-1, -1} && start == (POINT){-1, -1};
     }
 
-    void strategy_of_making_square(PLAYER player, vector< string >& map, POINT& start, POINT& end){
+    void strategy_of_making_square(PLAYER player, const vector< string >& map, POINT& start, POINT& end){
         if(!am_I_on_edge(player.position, map) && no_start_square(start, end)){
             go_to_nearest_edge(player.position, map);
             return;
@@ -254,20 +258,20 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
                 strategy_of_going_to_the_nearest_free_cell(player, map);
                 return;
             }
-            write_out(end);
+            write_out(&end);
             return;
         }
         if(!(player.position == end) && !(end == (POINT){-1, -1})){
-            write_out(end);
+            write_out(&end);
             return;
         }
         else if(player.position == end){
             end = {-1, -1};
-            write_out(start);
+            write_out(&start);
             return;
         }
         else if(!(player.position == start)){
-            write_out(start);
+            write_out(&start);
             return;
         }
         else if(player.position == start){
@@ -284,13 +288,13 @@ struct STRATEGY_OF_MAKING_SQUARE : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
 
 struct STRATEGY_OF_MEARGING_BFS : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
 
-    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+    void start(const vector< PLAYER >& players_now, const vector< string >& map_now){
         players = players_now;
         map = map_now;
         strategy_of_mearging_bfs(players, map);
     }
 
-    vector <vector<int>> bfs_2(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
+    vector <vector<int>> bfs_2(POINT& position, const vector< string >& map, vector< vector< bool > >& vis){
         vector< vector< int > >distance(HEIGHT, vector< int >(WIDTH, 0));
         queue< POINT > q;
         q.push(position);
@@ -312,7 +316,7 @@ struct STRATEGY_OF_MEARGING_BFS : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         return distance;
     }
 
-    vector< vector< int > > making_map_who_is_closer ( vector< PLAYER >& players, vector< string >& map){
+    vector< vector< int > > making_map_who_is_closer ( vector< PLAYER >& players, const vector< string >& map){
         vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
         vector<vector<int>> distance_to_me = bfs_2(players[MY_ID].position, map, vis);
         vector< vector< bool > >vis_opo(HEIGHT, vector< bool >(WIDTH, false));
@@ -342,7 +346,7 @@ struct STRATEGY_OF_MEARGING_BFS : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
         }
     }
 
-    vector<vector<int>> continuity(int player_number, vector< string >& map){
+    vector<vector<int>> continuity(int player_number, const vector< string >& map){
         vector< vector< bool > >vis(HEIGHT, vector< bool >(WIDTH, false));
         vector<POINT> where_path;
         for (int i = 0;i < HEIGHT;i++){
@@ -366,15 +370,15 @@ struct STRATEGY_OF_MEARGING_BFS : STRATEGY_OF_GOING_TO_THE_NEAREST_FREE_CELL{
 
     }
     // faze alpha
-    POINT decision_where_to_go( vector< PLAYER >& players, vector< string >& map,vector< vector< int > >& who_is_closer){
+    POINT decision_where_to_go( vector< PLAYER >& players, const vector< string >& map,vector< vector< int > >& who_is_closer){
         vector<vector<int>> number_of_sequence = continuity(MY_ID,map);
         return {0,0};
     }
     
-    void strategy_of_mearging_bfs ( vector< PLAYER >& players, vector< string >& map){
+    void strategy_of_mearging_bfs ( vector< PLAYER >& players, const vector< string >& map){
         vector< vector< int > > who_is_closer = making_map_who_is_closer (players, map);
         decision_where_to_go(players, map, who_is_closer);
-        write_out({0,0});
+        write_out(&ZEROZERO);
     }
 };
 
