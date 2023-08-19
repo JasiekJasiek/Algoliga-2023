@@ -72,16 +72,27 @@ struct STRATEGY_OF_GOING_TO_SELECTED_POINTS : BASE{
     }
 };
 
-POINT strategy_of_going_anywhere(vector< string >& map){
-    for(int i = 0; i < HEIGHT; ++i){
-        for(int j = 0; j < WIDTH; ++j){
-            if(map[ i ][ j ] == '.'){
-                return {i, j};
+struct STRATEGY_OF_GOING_ANYWHERE : BASE{
+    
+    void start(vector< PLAYER >& players_now, vector< string >& map_now){
+        players = players_now;
+        map = map_now;
+        strategy_of_going_anywhere(map);
+    }
+
+    void strategy_of_going_anywhere(vector< string >& map){
+        for(int i = 0; i < HEIGHT; ++i){
+            for(int j = 0; j < WIDTH; ++j){
+                if(map[ i ][ j ] == '.'){
+                    write_out({i, j});
+                    return ;
+                }
             }
         }
+        write_out({0, 0});
+        return ;
     }
-    return {0, 0};
-}
+};
 
 POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
     queue< POINT > q;
