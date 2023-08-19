@@ -7,6 +7,8 @@ const int NUMBER_OF_ROUND = 350;
 const int MY_ID = 0;
 const int NUMBER_OF_DIRECTIONS = 4;
 
+
+
 struct POINT{
     int x, y;
     bool operator==(const POINT other) const{
@@ -18,6 +20,32 @@ struct PLAYER{
     POINT position;
 };
 
+struct BASE {
+    vector< string > map;
+    vector< PLAYER > players;
+
+    vector< POINT > DIRECTIONS = {
+        {-1, 0}, // UP
+        {0, 1},  // RIGHT
+        {1, 0},  // LEFT
+        {0, -1}  // LEFT
+    };
+
+    vector< POINT > DIAGONAL_DIRECTIONS = {
+        {-1, -1}, //UP-LEFT
+        {-1, 1},  //UP-RIGHT
+        {1, 1},   //LEFT-RIGHT
+        {1, -1}  //LEFT-LEFT
+    };
+
+    bool is_on_map(POINT point){
+        return point.x >= 0 && point.x < HEIGHT && point.y >= 0 && point.y < WIDTH;
+    }
+
+    void write_out(const POINT& output){
+        cout << output.y << " " << output.x << '\n';
+    }
+};
 
 POINT strategy_of_going_to_selected_points(PLAYER& player, int& where_we_go){
     vector <POINT> list_of_points = {{1,1},{3,3},{7,4},{14,12},{8,15},{1,19},{1,1},{12,1},{16,1},{12,6}};
@@ -42,24 +70,6 @@ POINT strategy_of_going_anywhere(vector< string >& map){
         }
     }
     return {0, 0};
-}
-
-vector< POINT > DIRECTIONS = {
-    {-1, 0}, // UP
-    {0, 1},  // RIGHT
-    {1, 0},  // LEFT
-    {0, -1}  // LEFT
-};
-
-vector< POINT > DIAGONAL_DIRECTIONS = {
-    {-1, -1}, //UP-LEFT
-    {-1, 1},  //UP-RIGHT
-    {1, 1},   //LEFT-RIGHT
-    {1, -1}  //LEFT-LEFT
-};
-
-bool is_on_map(POINT point){
-    return point.x >= 0 && point.x < HEIGHT && point.y >= 0 && point.y < WIDTH;
 }
 
 POINT bfs(POINT& position, vector< string >& map, vector< vector< bool > >& vis){
@@ -341,6 +351,5 @@ int main(){
         //output = strategy_of_going_to_the_nearest_free_cell(players[ MY_ID ], map);
         //output = strategy_of_mearging_bfs (players, map);
         output = strategy_of_making_square(players[ MY_ID ], map, next_square, start_position);
-        cout << output.y << " " << output.x << '\n';
     }
 }
