@@ -33,14 +33,14 @@ struct BaseStrategy {
     const Point ZEROZERO = {0, 0};
     const Point DEAFULT = {-1, -1};
 
-    vector< Point > Directions = {
+    const vector< Point > Directions = {
         {-1, 0}, // UP
         {0, 1},  // RIGHT
         {1, 0},  // LEFT
         {0, -1}  // LEFT
     };
 
-    vector< Point > DiagonalDirections = {
+    const vector< Point > DiagonalDirections = {
         {-1, -1}, //UP-LEFT
         {-1, 1},  //UP-RIGHT
         {1, 1},   //LEFT-RIGHT
